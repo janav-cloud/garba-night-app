@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-export default function VerifiedUsers() {
+export default function RegisteredUsers() {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [userCount, setUserCount] = useState(0);
@@ -11,7 +11,7 @@ export default function VerifiedUsers() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch('/api/verifiedUsers');
+                const response = await fetch('/api/registeredUsers'); // Endpoint for registered users
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -40,10 +40,10 @@ export default function VerifiedUsers() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-6 font-poppins">
-            <h1 className="text-4xl font-bold mb-3 text-center text-teal-700">Verified Users ✅</h1>
+            <h1 className="text-4xl font-bold mb-6 text-center text-sky-600">Registered Users 📋</h1>
             <hr className='mb-3 border-2'></hr>
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-                <p className="text-xl mb-4 text-slate-600">Total Verified Users: {userCount}</p>
+                <p className="text-xl mb-4 text-slate-600">Total Registered Users: {userCount}</p>
                 <input
                     type="text"
                     placeholder="🔍 Search by name or email"
@@ -56,7 +56,7 @@ export default function VerifiedUsers() {
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-white shadow-md rounded-lg">
                     <thead>
-                        <tr className="bg-gray-200 text-teal-600 uppercase text-sm leading-normal">
+                        <tr className="bg-gray-200 text-sky-600 uppercase text-sm leading-normal">
                             <th className="py-3 px-6 text-left">Name</th>
                             <th className="py-3 px-6 text-left">Email</th>
                             <th className="py-3 px-6 text-left">Year</th>
