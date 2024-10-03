@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { db } from '../../lib/firebase'; 
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function RegisteredUsers() {
     const [users, setUsers] = useState([]);
@@ -8,10 +10,11 @@ export default function RegisteredUsers() {
     const [userCount, setUserCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Fetch initial users from API
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch('/api/registeredUsers'); // Endpoint for registered users
+                const response = await fetch('/api/registeredUsers');
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -27,6 +30,23 @@ export default function RegisteredUsers() {
         fetchUsers();
     }, []);
 
+    // Listen for real-time updates
+    useEffect(() => {
+        const registeredUsersCollection = collection(db, 'registered');
+        
+        const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
+            const updatedUsers = snapshot.docs.map(doc => doc.data());
+            setUsers(updatedUsers);
+            setUserCount(updatedUsers.length);
+        }, (error) => {
+            console.error('Error fetching verified users:', error);
+        });
+
+        // Cleanup listener on component unmount
+        return () => unsubscribe();
+    }, []);
+
+    // Filter users based on search query
     useEffect(() => {
         setFilteredUsers(
             users.filter(user => {
