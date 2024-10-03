@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '../../../lib/firebase'; // Ensure you import your db
+import { db } from '../../../lib/firebase'; // Ensure this points to your Firebase setup
 import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function RegisteredUsers() {
@@ -26,12 +26,12 @@ export default function RegisteredUsers() {
     }, []);
 
     useEffect(() => {
+        const searchLower = searchQuery.toLowerCase();
         setFilteredUsers(
             users.filter(user => {
                 const name = user.name ? user.name.toLowerCase() : '';
                 const email = user.email ? user.email.toLowerCase() : '';
-                const search = searchQuery.toLowerCase();
-                return name.includes(search) || email.includes(search);
+                return name.includes(searchLower) || email.includes(searchLower);
             })
         );
     }, [searchQuery, users]);
@@ -63,7 +63,7 @@ export default function RegisteredUsers() {
                     </thead>
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user, index) => (
+                            filteredUsers.map((user) => (
                                 <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
