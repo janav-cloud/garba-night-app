@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { db } from '../../../lib/firebase'; // Ensure you import your db
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function RegisteredUsers() {
     const [users, setUsers] = useState([]);
@@ -9,22 +11,18 @@ export default function RegisteredUsers() {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await fetch('/api/registeredUsers'); // Endpoint for registered users
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setUsers(data.users || []);
-                setFilteredUsers(data.users || []);
-                setUserCount(data.count || 0);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
+        const registeredUsersCollection = collection(db, 'registered');
+        const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
+            const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setUsers(usersData);
+            setFilteredUsers(usersData);
+            setUserCount(usersData.length);
+        }, (error) => {
+            console.error('Error fetching users:', error);
+        });
 
-        fetchUsers();
+        // Cleanup the subscription on unmount
+        return () => unsubscribe();
     }, []);
 
     useEffect(() => {
@@ -66,7 +64,7 @@ export default function RegisteredUsers() {
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map((user, index) => (
-                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+                                <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
                                     <td className="py-3 px-6 text-left">{user.year}</td>
