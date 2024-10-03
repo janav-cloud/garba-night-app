@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '../../../lib/firebase'; // Adjust the path as needed
+import { db } from '../../lib/firebase'; // Adjust the path as needed
 import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function VerifiedUsers() {
