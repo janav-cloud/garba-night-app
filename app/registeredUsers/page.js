@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '../../../lib/firebase'; // Ensure this points to your Firebase setup
-import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function RegisteredUsers() {
     const [users, setUsers] = useState([]);
@@ -11,27 +9,31 @@ export default function RegisteredUsers() {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const registeredUsersCollection = collection(db, 'registered');
-        const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
-            const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setUsers(usersData);
-            setFilteredUsers(usersData);
-            setUserCount(usersData.length);
-        }, (error) => {
-            console.error('Error fetching users:', error);
-        });
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch('/api/registeredUsers'); // Endpoint for registered users
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setUsers(data.users || []);
+                setFilteredUsers(data.users || []);
+                setUserCount(data.count || 0);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
 
-        // Cleanup the subscription on unmount
-        return () => unsubscribe();
+        fetchUsers();
     }, []);
 
     useEffect(() => {
-        const searchLower = searchQuery.toLowerCase();
         setFilteredUsers(
             users.filter(user => {
                 const name = user.name ? user.name.toLowerCase() : '';
                 const email = user.email ? user.email.toLowerCase() : '';
-                return name.includes(searchLower) || email.includes(searchLower);
+                const search = searchQuery.toLowerCase();
+                return name.includes(search) || email.includes(search);
             })
         );
     }, [searchQuery, users]);
@@ -63,8 +65,8 @@ export default function RegisteredUsers() {
                     </thead>
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
+                            filteredUsers.map((user, index) => (
+                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
                                     <td className="py-3 px-6 text-left">{user.year}</td>
