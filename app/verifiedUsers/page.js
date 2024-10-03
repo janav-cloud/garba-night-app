@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { db } from '../../../lib/firebase'; // Adjust the path as needed
+import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function VerifiedUsers() {
     const [users, setUsers] = useState([]);
@@ -8,6 +10,7 @@ export default function VerifiedUsers() {
     const [userCount, setUserCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Fetch initial users from API
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -27,6 +30,23 @@ export default function VerifiedUsers() {
         fetchUsers();
     }, []);
 
+    // Listen for real-time updates
+    useEffect(() => {
+        const verifiedUsersCollection = collection(db, 'verified'); // Adjust the collection name as needed
+        
+        const unsubscribe = onSnapshot(verifiedUsersCollection, (snapshot) => {
+            const updatedUsers = snapshot.docs.map(doc => doc.data());
+            setUsers(updatedUsers);
+            setUserCount(updatedUsers.length);
+        }, (error) => {
+            console.error('Error fetching verified users:', error);
+        });
+
+        // Cleanup listener on component unmount
+        return () => unsubscribe();
+    }, []);
+
+    // Filter users based on search query
     useEffect(() => {
         setFilteredUsers(
             users.filter(user => {
