@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useEffect, useState } from 'react';
 import { db } from '../../lib/firebase'; 
@@ -10,36 +10,17 @@ export default function RegisteredUsers() {
     const [userCount, setUserCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Fetch initial users from API
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const response = await fetch('/api/registeredUsers');
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const data = await response.json();
-                setUsers(data.users || []);
-                setFilteredUsers(data.users || []);
-                setUserCount(data.count || 0);
-            } catch (error) {
-                console.error('Error fetching users:', error);
-            }
-        };
-
-        fetchUsers();
-    }, []);
-
-    // Listen for real-time updates
+    // Listen for real-time updates from Firestore
     useEffect(() => {
         const registeredUsersCollection = collection(db, 'registered');
         
         const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
-            const updatedUsers = snapshot.docs.map(doc => doc.data());
+            const updatedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setUsers(updatedUsers);
             setUserCount(updatedUsers.length);
+            setFilteredUsers(updatedUsers); // Initialize filtered users
         }, (error) => {
-            console.error('Error fetching verified users:', error);
+            console.error('Error fetching registered users:', error);
         });
 
         // Cleanup listener on component unmount
@@ -85,8 +66,8 @@ export default function RegisteredUsers() {
                     </thead>
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user, index) => (
-                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+                            filteredUsers.map((user) => (
+                                <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
                                     <td className="py-3 px-6 text-left">{user.year}</td>
