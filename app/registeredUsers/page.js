@@ -9,7 +9,6 @@ export default function RegisteredUsers() {
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [userCount, setUserCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
-    const [highlightedUserIds, setHighlightedUserIds] = useState([]); // State for highlighted user IDs
 
     // Fetch initial users from API
     useEffect(() => {
@@ -36,7 +35,7 @@ export default function RegisteredUsers() {
         const registeredUsersCollection = collection(db, 'registered');
         
         const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
-            const updatedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Include doc ID
+            const updatedUsers = snapshot.docs.map(doc => doc.data());
             setUsers(updatedUsers);
             setUserCount(updatedUsers.length);
         }, (error) => {
@@ -59,24 +58,12 @@ export default function RegisteredUsers() {
         );
     }, [searchQuery, users]);
 
-    // Handle user name click
-    const handleUserClick = (userId) => {
-        setHighlightedUserIds(prevIds => {
-            if (prevIds.includes(userId)) {
-                return prevIds.filter(id => id !== userId); // Remove if already highlighted
-            } else {
-                return [...prevIds, userId]; // Add if not highlighted
-            }
-        });
-    };
-
     return (
         <div className="min-h-screen bg-gray-100 p-6 font-poppins">
             <h1 className="text-4xl font-bold mb-6 text-center text-sky-600">Registered Users 📋</h1>
             <hr className='mb-3 border-2'></hr>
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
                 <p className="text-xl mb-4 text-slate-600">Total Registered Users: {userCount}</p>
-                <p className="text-xl mb-4 text-slate-600">Highlighted Users: {highlightedUserIds.length}</p> {/* Counter for highlighted users */}
                 <input
                     type="text"
                     placeholder="🔍 Search by name or email"
@@ -98,11 +85,9 @@ export default function RegisteredUsers() {
                     </thead>
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <tr key={user.id} className={`border-b border-gray-200 hover:bg-gray-100 ${highlightedUserIds.includes(user.id) ? 'bg-yellow-200' : ''}`}>
-                                    <td className="py-3 px-6 text-left whitespace-nowrap cursor-pointer" onClick={() => handleUserClick(user.id)}>
-                                        {user.name}
-                                    </td>
+                            filteredUsers.map((user, index) => (
+                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+                                    <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
                                     <td className="py-3 px-6 text-left">{user.year}</td>
                                     <td className="py-3 px-6 text-left">{user.branch}</td>
