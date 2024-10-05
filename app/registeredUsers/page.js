@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { db } from '../../lib/firebase'; 
+import { db } from '../../lib/firebase'; // Adjust the path as needed
 import { collection, onSnapshot } from 'firebase/firestore';
 
 export default function RegisteredUsers() {
@@ -10,15 +10,34 @@ export default function RegisteredUsers() {
     const [userCount, setUserCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Listen for real-time updates from Firestore
+    // Fetch initial users from API
     useEffect(() => {
-        const registeredUsersCollection = collection(db, 'registered');
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch('/api/registeredUsers');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setUsers(data.users || []);
+                setFilteredUsers(data.users || []);
+                setUserCount(data.count || 0);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
+    // Listen for real-time updates
+    useEffect(() => {
+        const registeredUsersCollection = collection(db, 'registered'); // Adjust the collection name as needed
         
         const unsubscribe = onSnapshot(registeredUsersCollection, (snapshot) => {
-            const updatedUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const updatedUsers = snapshot.docs.map(doc => doc.data());
             setUsers(updatedUsers);
             setUserCount(updatedUsers.length);
-            setFilteredUsers(updatedUsers); // Initialize filtered users
         }, (error) => {
             console.error('Error fetching registered users:', error);
         });
@@ -41,7 +60,7 @@ export default function RegisteredUsers() {
 
     return (
         <div className="min-h-screen bg-gray-100 p-6 font-poppins">
-            <h1 className="text-4xl font-bold mb-6 text-center text-sky-600">Registered Users 📋</h1>
+            <h1 className="text-4xl font-bold mb-3 text-center text-teal-700">Registered Users 📋</h1>
             <hr className='mb-3 border-2'></hr>
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
                 <p className="text-xl mb-4 text-slate-600">Total Registered Users: {userCount}</p>
@@ -57,7 +76,7 @@ export default function RegisteredUsers() {
             <div className="overflow-x-auto">
                 <table className="min-w-full bg-white shadow-md rounded-lg">
                     <thead>
-                        <tr className="bg-gray-200 text-sky-600 uppercase text-sm leading-normal">
+                        <tr className="bg-gray-200 text-teal-600 uppercase text-sm leading-normal">
                             <th className="py-3 px-6 text-left">Name</th>
                             <th className="py-3 px-6 text-left">Email</th>
                             <th className="py-3 px-6 text-left">Year</th>
@@ -66,8 +85,8 @@ export default function RegisteredUsers() {
                     </thead>
                     <tbody className="text-gray-700 text-sm">
                         {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                                <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
+                            filteredUsers.map((user, index) => (
+                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
                                     <td className="py-3 px-6 text-left whitespace-nowrap">{user.name}</td>
                                     <td className="py-3 px-6 text-left">{user.email}</td>
                                     <td className="py-3 px-6 text-left">{user.year}</td>
